@@ -28,7 +28,7 @@ def load_items(numbers):
     flags = p.URDF_USE_INERTIA_FROM_FILE
     model_list = []
     item_ids = []
-    for root,dirs,files in os.walk(r'.\pybullet-URDF-models\urdf_models\models'):
+    for root,dirs,files in os.walk(r'./pybullet-URDF-models/urdf_models/models'):
         for file in files:
             if file == "model.urdf":
                 model_list.append(os.path.join(root,file))
@@ -46,7 +46,7 @@ def box_hm():
     ScanArray = np.array([xscan.reshape(-1),yscan.reshape(-1)])
     Start = np.insert(ScanArray,2,TopHeight,0).T
     End = np.insert(ScanArray,2,0,0).T
-    RayScan = np.array(p.rayTestBatch(Start, End))
+    RayScan = np.array(p.rayTestBatch(Start, End), dtype="object")
     Height = (1-RayScan[:,2].astype('float64'))*TopHeight
     HeightMap = Height.reshape(resolution,resolution).T
     return HeightMap  
@@ -63,8 +63,8 @@ def item_hm(item,orient):
     ScanArray = np.array([xscan.reshape(-1),yscan.reshape(-1)])
     Top = np.insert(ScanArray,2,AABB[1][2],axis=0).T
     Down = np.insert(ScanArray,2,AABB[0][2],axis=0).T
-    RayScanTD = np.array(p.rayTestBatch(Top, Down))
-    RayScanDT = np.array(p.rayTestBatch(Down, Top))
+    RayScanTD = np.array(p.rayTestBatch(Top, Down), dtype="object")
+    RayScanDT = np.array(p.rayTestBatch(Down, Top), dtype="object")
     Ht = (1-RayScanTD[:,2])*(AABB[1][2]-AABB[0][2])
     RayScanDT = RayScanDT[:,2]
     RayScanDT[RayScanDT==1] = np.inf

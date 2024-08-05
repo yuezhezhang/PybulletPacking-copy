@@ -11,7 +11,7 @@ import pybullet as p
 import time
 import pybullet_data
 import os
-from pybullet_object_models import ycb_objects
+# from pybullet_object_models import ycb_objects
 
 xmin, xmax, ymin, ymax = 0.,0.4,0.,0.4
 resolution = 40
@@ -28,7 +28,7 @@ def load_items(numbers):
     flags = p.URDF_USE_INERTIA_FROM_FILE
     model_list = []
     item_ids = []
-    for root,dirs,files in os.walk(r'D:\packing\pybullet-URDF-models-main\pybullet-URDF-models\urdf_models\models'):
+    for root,dirs,files in os.walk('./pybullet-URDF-models/urdf_models/models'):
         for file in files:
             if file == "model.urdf":
                 model_list.append(os.path.join(root,file))
@@ -45,7 +45,10 @@ def grid_scan(xminmax, yminmax, z_start, z_end, sep):
     ScanArray = np.array([xscan.reshape(-1), yscan.reshape(-1)])
     Start = np.insert(ScanArray, 2, z_start,0).T
     End = np.insert(ScanArray, 2, z_end, 0).T
-    RayScan = np.array(p.rayTestBatch(Start, End))
+    # print("end", np.array(End).shape)
+    # print(len(p.rayTestBatch(Start, End)))
+    # print(p.rayTestBatch(np.array(Start), np.array(End)))
+    RayScan = np.array(p.rayTestBatch(Start, End), dtype="object")
     Height = RayScan[:,2].astype('float64')*(z_end-z_start)+z_start
     HeightMap = Height.reshape(ypos.shape[0],xpos.shape[0]).T
     return HeightMap
@@ -176,7 +179,7 @@ if __name__ == '__main__':
     p.setAdditionalSearchPath(pybullet_data.getDataPath())
     p.setGravity(0, 0, -10)
     planeId = p.loadURDF("plane.urdf")
-    item_numbers = np.arange(20,21)
+    item_numbers = np.arange(1,21)
     item_ids = load_items(item_numbers)
     v = []
     for item in item_ids:
@@ -186,9 +189,6 @@ if __name__ == '__main__':
         v.append(volume)
         
         
-    #pause
-    '''
-    for i in range(1000):
+    for i in range(3000):
         p.stepSimulation()
         time.sleep(1./240.)
-        '''
