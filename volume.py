@@ -13,17 +13,6 @@ import pybullet_data
 import os
 # from pybullet_object_models import ycb_objects
 
-xmin, xmax, ymin, ymax = 0.,0.4,0.,0.4
-resolution = 40
-TopHeight = 0.3
-N = 20
-#item_size = np.array([[5,5,8],[3,5,2],[1,3,4],[2,2,4],[6,2,4],[5,9,3],[6,8,1]])
-item_size = np.random.randint(low=1,high=10,size=[N,3])
-items = []
-for size in item_size:
-    items.append(np.ones(size))
-c = 0.001
-
 def load_items(numbers):
     flags = p.URDF_USE_INERTIA_FROM_FILE
     model_list = []
@@ -52,19 +41,6 @@ def grid_scan(xminmax, yminmax, z_start, z_end, sep):
     Height = RayScan[:,2].astype('float64')*(z_end-z_start)+z_start
     HeightMap = Height.reshape(ypos.shape[0],xpos.shape[0]).T
     return HeightMap
-
-def box_hm():
-    sep = (xmax-xmin)/resolution
-    xpos = np.arange(xmin+sep/2,xmax+sep/2,sep)
-    ypos = np.arange(ymin+sep/2,ymax+sep/2,sep)
-    xscan, yscan = np.meshgrid(xpos,ypos)
-    ScanArray = np.array([xscan.reshape(-1),yscan.reshape(-1)])
-    Start = np.insert(ScanArray,2,TopHeight,0).T
-    End = np.insert(ScanArray,2,0,0).T
-    RayScan = np.array(p.rayTestBatch(Start, End))
-    Height = (1-RayScan[:,2].astype('float64'))*TopHeight
-    HeightMap = Height.reshape(resolution,resolution).T
-    return HeightMap  
 
 def item_volume(item):
     # cm^3 
@@ -100,29 +76,6 @@ def Pyramidality(item_in_box, item_volumes, box_hm):
         total_volume += item_volumes[item]
     used_volume = np.sum(box_hm)
     return total_volume/used_volume
-
-def item_hm(item,orient):
-    old_pos, old_quater = p.getBasePositionAndOrientation(item)
-    quater = p.getQuaternionFromEuler(orient)
-    p.resetBasePositionAndOrientation(item,[1,1,1],quater)
-    AABB = p.getAABB(item)
-    sep = (xmax-xmin)/resolution
-    xpos = np.arange(AABB[0][0]+sep/2,AABB[1][0],sep)
-    ypos = np.arange(AABB[0][1]+sep/2,AABB[1][1],sep)
-    xscan, yscan = np.meshgrid(xpos,ypos)
-    ScanArray = np.array([xscan.reshape(-1),yscan.reshape(-1)])
-    Top = np.insert(ScanArray,2,AABB[1][2],axis=0).T
-    Down = np.insert(ScanArray,2,AABB[0][2],axis=0).T
-    RayScanTD = np.array(p.rayTestBatch(Top, Down))
-    RayScanDT = np.array(p.rayTestBatch(Down, Top))
-    Ht = (1-RayScanTD[:,2])*(AABB[1][2]-AABB[0][2])
-    RayScanDT = RayScanDT[:,2]
-    RayScanDT[RayScanDT==1] = np.inf
-    Hb = RayScanDT*(AABB[1][2]-AABB[0][2])
-    Ht = Ht.astype('float64').reshape(len(ypos),len(xpos)).T
-    Hb = Hb.astype('float64').reshape(len(ypos),len(xpos)).T
-    p.resetBasePositionAndOrientation(item,old_pos,old_quater)
-    return Ht,Hb
 
 def drawAABB(aabb,width=1):
   aabbMin = aabb[0]

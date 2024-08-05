@@ -24,20 +24,6 @@ for size in item_size:
     items.append(np.ones(size))
 c = 0.001
 
-def load_items(numbers):
-    flags = p.URDF_USE_INERTIA_FROM_FILE
-    model_list = []
-    item_ids = []
-    for root,dirs,files in os.walk(r'./pybullet-URDF-models/urdf_models/models'):
-        for file in files:
-            if file == "model.urdf":
-                model_list.append(os.path.join(root,file))
-    for count in range(len(numbers)):
-        item_id = p.loadURDF(model_list[numbers[count]-1], 
-                             [(count//8)/3+1.2, (count%8)/3+0.2, 0.05], flags=flags)
-        item_ids.append(item_id)
-    return item_ids
-
 def box_hm():
     sep = (xmax-xmin)/resolution
     xpos = np.arange(xmin+sep/2,xmax+sep/2,sep)
@@ -186,53 +172,6 @@ def move_item(item, trans):
         p.stepSimulation()
         time.sleep(1./240.)
 
-def drawAABB(aabb,width=1):
-  aabbMin = aabb[0]
-  aabbMax = aabb[1]
-  f = [aabbMin[0], aabbMin[1], aabbMin[2]]
-  t = [aabbMax[0], aabbMin[1], aabbMin[2]]
-  p.addUserDebugLine(f, t, [1, 0, 0], width)
-  f = [aabbMin[0], aabbMin[1], aabbMin[2]]
-  t = [aabbMin[0], aabbMax[1], aabbMin[2]]
-  p.addUserDebugLine(f, t, [0, 1, 0], width)
-  f = [aabbMin[0], aabbMin[1], aabbMin[2]]
-  t = [aabbMin[0], aabbMin[1], aabbMax[2]]
-  p.addUserDebugLine(f, t, [0, 0, 1], width)
-
-  f = [aabbMin[0], aabbMin[1], aabbMax[2]]
-  t = [aabbMin[0], aabbMax[1], aabbMax[2]]
-  p.addUserDebugLine(f, t, [1, 1, 1], width)
-
-  f = [aabbMin[0], aabbMin[1], aabbMax[2]]
-  t = [aabbMax[0], aabbMin[1], aabbMax[2]]
-  p.addUserDebugLine(f, t, [1, 1, 1], width)
-
-  f = [aabbMax[0], aabbMin[1], aabbMin[2]]
-  t = [aabbMax[0], aabbMin[1], aabbMax[2]]
-  p.addUserDebugLine(f, t, [1, 1, 1], width)
-
-  f = [aabbMax[0], aabbMin[1], aabbMin[2]]
-  t = [aabbMax[0], aabbMax[1], aabbMin[2]]
-  p.addUserDebugLine(f, t, [1, 1, 1], width)
-
-  f = [aabbMax[0], aabbMax[1], aabbMin[2]]
-  t = [aabbMin[0], aabbMax[1], aabbMin[2]]
-  p.addUserDebugLine(f, t, [1, 1, 1], width)
-
-  f = [aabbMin[0], aabbMax[1], aabbMin[2]]
-  t = [aabbMin[0], aabbMax[1], aabbMax[2]]
-  p.addUserDebugLine(f, t, [1, 1, 1], width)
-
-  f = [aabbMax[0], aabbMax[1], aabbMax[2]]
-  t = [aabbMin[0], aabbMax[1], aabbMax[2]]
-  p.addUserDebugLine(f, t, [1, 1, 1], width)
-  f = [aabbMax[0], aabbMax[1], aabbMax[2]]
-  t = [aabbMax[0], aabbMin[1], aabbMax[2]]
-  p.addUserDebugLine(f, t, [1, 1, 1], width)
-  f = [aabbMax[0], aabbMax[1], aabbMax[2]]
-  t = [aabbMax[0], aabbMax[1], aabbMin[2]]
-  p.addUserDebugLine(f, t, [1, 1, 1], width)
-
 def draw_box(width=5):
     p.addUserDebugLine([xmin,ymin,0],[xmin,ymin,TopHeight], [1, 1, 1], width)
     p.addUserDebugLine([xmin,ymax,0],[xmin,ymax,TopHeight], [1, 1, 1], width)
@@ -277,12 +216,12 @@ if __name__ == '__main__':
     create_box_bullet([0.1,ymax-ymin,TopHeight],[xmin-0.05,(ymax-ymin)/2+ymin,TopHeight/2])
     create_box_bullet([0.1,ymax-ymin,TopHeight],[xmax+0.05,(ymax-ymin)/2+ymin,TopHeight/2])
     item_numbers = np.arange(1,20)
-    item_ids = load_items(item_numbers)
+    item_ids = volume.load_items(item_numbers)
     draw_box(3)
     item_volumes = {}
     for item in item_ids:
         AABB = p.getAABB(item)
-        drawAABB(AABB)
+        volume.drawAABB(AABB)
         item_volumes[item] = volume.item_volume(item)
     #pause
     
@@ -295,11 +234,3 @@ if __name__ == '__main__':
     Trans, U = Alg4_Packing(item_ids, item_volumes)
     if len(U)!=0:
         print('item {} are not packed into the box.'.format(U))
-    
-    #pause
-    
-    
-#    Trans, U = Alg4_Packing(items)
-#    if len(U)!=0:
-#        print('item {} are not packed into the box.'.format(U))
-    #p.disconnect()
