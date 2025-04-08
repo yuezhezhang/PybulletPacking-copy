@@ -66,7 +66,7 @@ def pre_order(items):
     volume = []
     for item in items:
         AABB = np.array(p.getAABB(item))
-        volume.append(np.product(AABB[1]-AABB[0]))
+        volume.append(np.prod(AABB[1]-AABB[0]))
     pre_order = np.argsort(volume)[::-1]
     return pre_order
 
